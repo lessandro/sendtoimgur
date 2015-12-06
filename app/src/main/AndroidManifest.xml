@@ -10,33 +10,26 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".History">
+        android:theme="@android:style/Theme.Holo">
+
+        <activity android:name=".SendToImgur">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/*" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
                     android:host="lessandro.com"
                     android:pathPrefix="/sendtoimgur/auth"
                     android:scheme="http" />
-            </intent-filter>
-        </activity>
-
-        <service
-            android:name=".Uploader"
-            android:exported="false" />
-
-        <activity android:name=".UploadActivity"
-            android:theme="@style/Invisible">
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
     </application>
