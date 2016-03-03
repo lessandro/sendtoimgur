@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Holo">
 
-        <activity android:name=".SendToImgur">
+        <activity android:name=".SendToImgur" android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 

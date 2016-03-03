@@ -42,10 +42,6 @@ public class SendToImgur extends Activity implements FutureCallback<JsonObject>,
         logView = (TextView) findViewById(R.id.log);
         linkView = (TextView) findViewById(R.id.link);
         bar = (ProgressBar) findViewById(R.id.bar);
-
-        log("access_token: " + preferences.getString("access_token", "(null)"));
-
-        handleIntents();
     }
 
     private void log(String text) {
@@ -53,8 +49,31 @@ public class SendToImgur extends Activity implements FutureCallback<JsonObject>,
         Log.i(TAG, text);
     }
 
-    private void handleIntents() {
+    @Override
+    protected void onNewIntent(Intent intent) {
+        setIntent(intent);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handleIntent();
+    }
+
+    private void reset() {
+        linkView.setVisibility(View.GONE);
+        bar.setVisibility(View.GONE);
+        setIntent(null);
+        logView.setText("");
+    }
+
+    private void handleIntent() {
         Intent intent = getIntent();
+        if (intent == null)
+            return;
+
+        reset();
+
         String action = intent.getAction();
 
         if (Intent.ACTION_SEND.equals(action)) {
