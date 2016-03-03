@@ -4,4 +4,5 @@
     <string name="imgur_client_secret"></string>
     <string name="imgur_auth_uri">https://api.imgur.com/oauth2/authorize</string>
     <string name="imgur_image_uri">https://api.imgur.com/3/image</string>
+    <string name="imgur_token_uri">https://api.imgur.com/oauth2/token</string>
 </resources>

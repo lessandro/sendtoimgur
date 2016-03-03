@@ -32,6 +32,7 @@ public class SendToImgur extends Activity implements FutureCallback<JsonObject>,
     private TextView logView;
     private TextView linkView;
     private ProgressBar bar;
+    private Uri imageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,22 +81,27 @@ public class SendToImgur extends Activity implements FutureCallback<JsonObject>,
             String type = intent.getType();
 
             if (type != null && type.startsWith("image/")) {
-                Uri imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                uploadImage(imageUri);
+                imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                refreshToken();
             }
         }
 
         if (Intent.ACTION_VIEW.equals(action)) {
             String url = intent.getData().toString();
-            String accessToken = Uri.parse(url.replace('#', '?')).getQueryParameter("access_token");
+            Uri parsed = Uri.parse(url.replace('#', '?'));
+            String refreshToken = parsed.getQueryParameter("refresh_token");
 
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("access_token", accessToken);
-            editor.commit();
+            saveRefreshToken(refreshToken);
 
             log("auth url: " + url);
-            log("access token: " + accessToken);
+            log("refresh token: " + refreshToken);
         }
+    }
+
+    private void saveRefreshToken(String refreshToken) {
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("refresh_token", refreshToken);
+        editor.commit();
     }
 
     @Override
@@ -115,11 +121,49 @@ public class SendToImgur extends Activity implements FutureCallback<JsonObject>,
 
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, authUri);
         startActivity(browserIntent);
+        finish();
     }
 
-    private void uploadImage(Uri imageUri) {
+    private void refreshToken() {
+        String oldRefreshToken = preferences.getString("refresh_token", null);
+        String clientId = getString(R.string.imgur_client_id);
+        String clientSecret = getString(R.string.imgur_client_secret);
+
+        log("refreshing token");
+
+        if (oldRefreshToken == null) {
+            login(null);
+            return;
+        }
+
+        Ion.with(this)
+                .load("POST", getString(R.string.imgur_token_uri))
+                .setBodyParameter("refresh_token", oldRefreshToken)
+                .setBodyParameter("client_id", clientId)
+                .setBodyParameter("client_secret", clientSecret)
+                .setBodyParameter("grant_type", "refresh_token")
+                .asJsonObject()
+                .setCallback(new FutureCallback<JsonObject>() {
+                    @Override
+                    public void onCompleted(Exception e, JsonObject result) {
+                        if (e != null) {
+                            log("error: " + e.toString());
+                            e.printStackTrace();
+                        } else {
+                            log("result: " + result.toString());
+
+                            String newRefreshToken = result.get("refresh_token").getAsString();
+                            saveRefreshToken(newRefreshToken);
+
+                            String accessToken = result.get("access_token").getAsString();
+                            uploadImage(accessToken);
+                        }
+                    }
+                });
+    }
+
+    private void uploadImage(String accessToken) {
         String path = convertMediaUriToPath(imageUri);
-        String accessToken = preferences.getString("access_token", null);
 
         log("media: " + imageUri.toString());
         log("path: " + path);
